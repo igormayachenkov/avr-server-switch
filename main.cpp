@@ -13,9 +13,13 @@
 #define SetPin(port,pin)    port|=(1<<pin)
 #define ClearPin(port,pin)  port&=~(1<<pin)
 
+// Open Signal
+#define Signal_PIN  PINB3
+
 // PWM
 #define PWM_PIN 1 //PB1/OC1A
-unsigned char valPWM = 6;
+#define PWM_MIN  6
+#define PWM_MAX 31
 
 // Debug LED - primitive UI
 #define Debug_PIN  4
@@ -46,7 +50,7 @@ int main(void)
 	TCCR0B = 1<<CS02 | 0<<CS01 | 1<<CS00; // Internal Clock/1024
 	
 	// PWM GENERATOR : 8-bit TIMER/COUNTER1
-	OCR1A = 18; //(MIN)6:432us 15:1.0us   23:1480us   31:1980us(MAX)  18-middle
+	OCR1A = 18;//PWM_MIN; //(MIN)6:432us 15:1.0us  MED:18:1700us   31:1980us(MAX)  18-middle
 	OCR1C = 0xFF;
 	// TCCR1 – Timer/Counter1 Control Register
 	TCCR1 = 1<<PWM1A // Pulse Width Modulator A Enable
@@ -75,8 +79,11 @@ ISR(TIMER0_OVF_vect){
 	//else{
 		//countSkip = COUNT_SKIP;
 		
-		//OCR1A = valPWM;
-		//valPWM++;
+		if( (PINB & (1<<Signal_PIN)) > 0)
+			OCR1A = PWM_MAX;
+		else
+			OCR1A = PWM_MIN;
+
 		
 		// Toggle debug led
 		debugLed = !debugLed;
